@@ -11,6 +11,7 @@ This is the fallback deployment path for cases where cross-built artifacts are n
 - uploads that archive to the Pi
 - checks for native build dependencies
 - optionally installs missing dependencies
+- installs ALSA development headers when they are needed for the current runtime
 - extracts a clean native source tree on the Pi
 - refreshes the Pi-hosted `web/` assets and nginx site config from the copied source tree
 - configures and builds `pi_fartbox_runtime` on-device

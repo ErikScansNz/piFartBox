@@ -202,6 +202,7 @@ preflight_packages() {{
   dpkg -s pkgconf >/dev/null 2>&1 || missing+=("pkgconf")
   dpkg -s git >/dev/null 2>&1 || missing+=("git")
   dpkg -s python3 >/dev/null 2>&1 || missing+=("python3")
+  dpkg -s libasound2-dev >/dev/null 2>&1 || missing+=("libasound2-dev")
   if [ "${{#missing[@]}}" -eq 0 ]; then
     log_step "Native build dependencies already present"
     return 0
@@ -241,6 +242,12 @@ if [ -f "$SOURCE_ROOT/deploy/nginx/pifartbox.conf" ] && [ -d /etc/nginx/sites-av
   ln -sfn /etc/nginx/sites-available/pifartbox.conf /etc/nginx/sites-enabled/pifartbox.conf
   rm -f /etc/nginx/sites-enabled/default
   systemctl reload nginx || systemctl restart nginx || true
+fi
+if [ -f "$SOURCE_ROOT/deploy/systemd/pifartbox-runtime.service" ]; then
+  log_step "Refreshing pifartbox-runtime.service"
+  sed "s/@TARGET_USER@/$TARGET_USER/g" "$SOURCE_ROOT/deploy/systemd/pifartbox-runtime.service" > /etc/systemd/system/pifartbox-runtime.service
+  chmod 0644 /etc/systemd/system/pifartbox-runtime.service
+  systemctl daemon-reload
 fi
 if [ "$PREFLIGHT_ONLY" = "1" ]; then
   log_step "Preflight complete"

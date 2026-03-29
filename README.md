@@ -63,4 +63,5 @@
 Repository bootstrap and governance scaffolding are complete.
 Runtime foundation, schema, and the first ARMv6 cross-build baseline are in place.
 Provisioning for fresh Raspberry Pi OS targets supports streamed output and selectable apt modes.
+The first ALSA runtime foundation is now live on the Pi, including runtime JSON telemetry and a Pi-hosted workbench view of accepted audio settings.
 See `docs/todo.md` for the next active tasks.

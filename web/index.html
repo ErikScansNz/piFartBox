@@ -377,6 +377,21 @@
                 <div class="meta" id="audio-backend-meta">Waiting for host probe.</div>
               </div>
               <div class="card">
+                <div class="label">ALSA Runtime</div>
+                <div class="value" id="audio-runtime-state">--</div>
+                <div class="meta" id="audio-runtime-meta">Waiting for runtime audio state.</div>
+              </div>
+              <div class="card">
+                <div class="label">Device</div>
+                <div class="value" id="audio-device">--</div>
+                <div class="meta" id="audio-device-meta">No active ALSA device yet.</div>
+              </div>
+              <div class="card">
+                <div class="label">Buffering</div>
+                <div class="value" id="audio-period">--</div>
+                <div class="meta" id="audio-period-meta">No period configuration reported yet.</div>
+              </div>
+              <div class="card">
                 <div class="label">Cards</div>
                 <div class="value" id="audio-cards-count">0</div>
                 <div class="meta" id="audio-cards-list">No ALSA cards reported yet.</div>
@@ -394,8 +409,9 @@
             <ul class="list">
               <li>Preferred pipeline remains host cross-build plus deploy.</li>
               <li>Native on-device build is now our reliable ARMv6 fallback.</li>
+              <li>The runtime now owns the first ALSA playback thread and reports accepted device settings live.</li>
               <li>The next browser milestone is editable module placement and slot assignment.</li>
-              <li>The next runtime milestone is actual ALSA render and control API state endpoints.</li>
+              <li>The next runtime milestone is replacing the test path with real synth voice rendering.</li>
             </ul>
           </section>
         </div>
@@ -473,7 +489,32 @@
         const cards = audio.cards || [];
         const pcmDevices = audio.pcm_devices || [];
         setText("audio-backend", audio.backend || "--");
-        setText("audio-backend-meta", audio.proc_asound_available ? "Detected /proc/asound on the Pi." : "No /proc/asound state detected.");
+        setText(
+          "audio-backend-meta",
+          audio.proc_asound_available ? "Detected /proc/asound on the Pi." : "No /proc/asound state detected."
+        );
+        setText("audio-runtime-state", audio.thread_running ? "Running" : audio.device_opened ? "Opened" : "Idle");
+        setText(
+          "audio-runtime-meta",
+          `RT ${audio.realtime_thread ? "yes" : "no"} | mlock ${audio.memory_locked ? "yes" : "no"} | xruns ${audio.xrun_count ?? 0}`
+        );
+        setText("audio-device", audio.active_device || audio.requested_device || "--");
+        setText(
+          "audio-device-meta",
+          audio.last_error
+            ? `Last error: ${audio.last_error}`
+            : `${audio.sample_format || "--"} @ ${audio.sample_rate_hz || "--"} Hz, ${audio.channels || "--"} ch`
+        );
+        setText(
+          "audio-period",
+          audio.period_frames && audio.period_count ? `${audio.period_frames} x ${audio.period_count}` : "--"
+        );
+        setText(
+          "audio-period-meta",
+          audio.tone_enabled
+            ? `Tone test ${audio.tone_frequency_hz || "--"} Hz | render cycles ${audio.render_cycle_count ?? 0}`
+            : `Render cycles ${audio.render_cycle_count ?? 0}`
+        );
         setText("audio-cards-count", String(cards.length));
         setText("audio-cards-list", cards.length ? cards.join(" | ") : "No ALSA cards detected.");
         setText("audio-pcm-count", String(pcmDevices.length));

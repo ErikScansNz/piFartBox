@@ -17,6 +17,8 @@ RestartSec=2
 NoNewPrivileges=true
 LimitRTPRIO=95
 LimitMEMLOCK=infinity
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=60
 
 [Install]
 WantedBy=multi-user.target

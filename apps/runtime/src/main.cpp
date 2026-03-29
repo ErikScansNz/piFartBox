@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -58,6 +59,48 @@ void write_runtime_state(const std::filesystem::path& state_dir, const std::stri
   state_file << summary;
 }
 
+auto env_string(const char* name, std::string fallback) -> std::string {
+  if (const char* value = std::getenv(name); value != nullptr && *value != '\0') {
+    return value;
+  }
+  return fallback;
+}
+
+auto env_uint(const char* name, std::uint32_t fallback) -> std::uint32_t {
+  if (const char* value = std::getenv(name); value != nullptr && *value != '\0') {
+    try {
+      return static_cast<std::uint32_t>(std::stoul(value));
+    } catch (...) {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
+auto env_double(const char* name, double fallback) -> double {
+  if (const char* value = std::getenv(name); value != nullptr && *value != '\0') {
+    try {
+      return std::stod(value);
+    } catch (...) {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
+auto env_bool(const char* name, bool fallback) -> bool {
+  if (const char* value = std::getenv(name); value != nullptr && *value != '\0') {
+    const std::string text(value);
+    if (text == "1" || text == "true" || text == "TRUE" || text == "yes" || text == "on") {
+      return true;
+    }
+    if (text == "0" || text == "false" || text == "FALSE" || text == "no" || text == "off") {
+      return false;
+    }
+  }
+  return fallback;
+}
+
 auto json_escape(std::string_view input) -> std::string {
   std::string escaped;
   escaped.reserve(input.size() + 8);
@@ -90,6 +133,7 @@ void write_runtime_state_json(const std::filesystem::path& state_dir,
                               const pi_fartbox::engine::EngineRuntime& engine,
                               const pi_fartbox::session::SessionManager& sessions,
                               const pi_fartbox::platform::LinuxHost& host,
+                              const pi_fartbox::platform::AlsaPlaybackStatus& audio_status,
                               const pi_fartbox::control::ControlServer& control,
                               const pi_fartbox::controller::ControllerContext& controller_context) {
   ensure_directory(state_dir);
@@ -110,6 +154,23 @@ void write_runtime_state_json(const std::filesystem::path& state_dir,
   state_file << "  \"audio\": {\n";
   state_file << "    \"backend\": \"" << json_escape(host.config().audio_backend) << "\",\n";
   state_file << "    \"proc_asound_available\": " << (probe.proc_asound_available ? "true" : "false") << ",\n";
+  state_file << "    \"compiled_with_alsa\": " << (audio_status.compiled_with_alsa ? "true" : "false") << ",\n";
+  state_file << "    \"device_opened\": " << (audio_status.device_opened ? "true" : "false") << ",\n";
+  state_file << "    \"thread_running\": " << (audio_status.thread_running ? "true" : "false") << ",\n";
+  state_file << "    \"realtime_thread\": " << (audio_status.realtime_thread ? "true" : "false") << ",\n";
+  state_file << "    \"memory_locked\": " << (audio_status.memory_locked ? "true" : "false") << ",\n";
+  state_file << "    \"requested_device\": \"" << json_escape(audio_status.requested_device) << "\",\n";
+  state_file << "    \"active_device\": \"" << json_escape(audio_status.active_device) << "\",\n";
+  state_file << "    \"sample_format\": \"" << json_escape(audio_status.sample_format) << "\",\n";
+  state_file << "    \"sample_rate_hz\": " << audio_status.sample_rate_hz << ",\n";
+  state_file << "    \"channels\": " << audio_status.channels << ",\n";
+  state_file << "    \"period_frames\": " << audio_status.period_frames << ",\n";
+  state_file << "    \"period_count\": " << audio_status.period_count << ",\n";
+  state_file << "    \"xrun_count\": " << audio_status.xrun_count << ",\n";
+  state_file << "    \"render_cycle_count\": " << audio_status.render_cycle_count << ",\n";
+  state_file << "    \"tone_enabled\": " << (audio_status.tone_enabled ? "true" : "false") << ",\n";
+  state_file << "    \"tone_frequency_hz\": " << audio_status.tone_frequency_hz << ",\n";
+  state_file << "    \"last_error\": \"" << json_escape(audio_status.last_error) << "\",\n";
   state_file << "    \"cards\": [";
   for (std::size_t index = 0; index < probe.cards.size(); ++index) {
     if (index > 0) {
@@ -182,6 +243,7 @@ void write_runtime_state_json(const std::filesystem::path& state_dir,
 auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
                   const pi_fartbox::session::SessionManager& sessions,
                   const pi_fartbox::platform::LinuxHost& host,
+                  const pi_fartbox::platform::AlsaPlaybackStatus& audio_status,
                   const pi_fartbox::control::ControlServer& control,
                   const pi_fartbox::controller::SlmkiiiMapper& controller,
                   const pi_fartbox::zynthian::ZynthianAdapter& zynthian) -> std::string {
@@ -205,6 +267,19 @@ auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
   out << "content_root: " << sessions.paths().content_root << "\n";
   out << "install_root: " << host.config().install_root << "\n";
   out << "audio_backend: " << host.config().audio_backend << "\n";
+  out << "audio_requested_device: " << audio_status.requested_device << "\n";
+  out << "audio_active_device: " << (audio_status.active_device.empty() ? "--" : audio_status.active_device) << "\n";
+  out << "audio_opened: " << (audio_status.device_opened ? "yes" : "no") << "\n";
+  out << "audio_thread_running: " << (audio_status.thread_running ? "yes" : "no") << "\n";
+  out << "audio_realtime_thread: " << (audio_status.realtime_thread ? "yes" : "no") << "\n";
+  out << "audio_memory_locked: " << (audio_status.memory_locked ? "yes" : "no") << "\n";
+  out << "audio_format: " << audio_status.sample_format << "\n";
+  out << "audio_period_frames: " << audio_status.period_frames << "\n";
+  out << "audio_period_count: " << audio_status.period_count << "\n";
+  out << "audio_xruns: " << audio_status.xrun_count << "\n";
+  if (!audio_status.last_error.empty()) {
+    out << "audio_last_error: " << audio_status.last_error << "\n";
+  }
   out << "control_endpoint: " << control.config().bind_host << ":" << control.config().bind_port << "\n";
   out << "controller: " << controller.subsystem_name() << "\n";
   out << "controller_device: " << controller.config().device_name << "\n";
@@ -228,12 +303,19 @@ auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
 
 auto main(int argc, char** argv) -> int {
   bool one_shot = false;
+  std::optional<std::uint32_t> tone_test_seconds;
   for (int index = 1; index < argc; ++index) {
     const std::string argument = argv[index];
     if (argument == "--oneshot") {
       one_shot = true;
+    } else if (argument == "--tone-test") {
+      if (index + 1 >= argc) {
+        std::cerr << "--tone-test requires a duration in seconds\n";
+        return 1;
+      }
+      tone_test_seconds = static_cast<std::uint32_t>(std::stoul(argv[++index]));
     } else if (argument == "--help") {
-      std::cout << "Usage: pi_fartbox_runtime [--oneshot]\n";
+      std::cout << "Usage: pi_fartbox_runtime [--oneshot] [--tone-test <seconds>]\n";
       return 0;
     } else {
       std::cerr << "Unknown argument: " << argument << "\n";
@@ -243,12 +325,32 @@ auto main(int argc, char** argv) -> int {
 
   pi_fartbox::engine::EngineRuntime engine;
   pi_fartbox::session::SessionManager sessions;
-  pi_fartbox::platform::LinuxHost host;
+  pi_fartbox::platform::LinuxHostConfig host_config;
+  host_config.install_root = env_string("PI_FARTBOX_INSTALL_ROOT", host_config.install_root);
+  host_config.audio_backend = env_string("PI_FARTBOX_AUDIO_BACKEND", host_config.audio_backend);
+  host_config.alsa_device = env_string("PI_FARTBOX_ALSA_DEVICE", host_config.alsa_device);
+  host_config.audio_sample_rate_hz = env_uint("PI_FARTBOX_AUDIO_SAMPLE_RATE", host_config.audio_sample_rate_hz);
+  host_config.audio_channels = env_uint("PI_FARTBOX_AUDIO_CHANNELS", host_config.audio_channels);
+  host_config.audio_period_frames = env_uint("PI_FARTBOX_AUDIO_PERIOD_FRAMES", host_config.audio_period_frames);
+  host_config.audio_period_count = env_uint("PI_FARTBOX_AUDIO_PERIOD_COUNT", host_config.audio_period_count);
+  host_config.audio_realtime_priority = env_uint("PI_FARTBOX_AUDIO_RT_PRIORITY", host_config.audio_realtime_priority);
+  host_config.audio_test_tone_enabled = env_bool("PI_FARTBOX_AUDIO_TEST_TONE", host_config.audio_test_tone_enabled) || tone_test_seconds.has_value();
+  host_config.audio_test_tone_hz = env_double("PI_FARTBOX_AUDIO_TEST_TONE_HZ", host_config.audio_test_tone_hz);
+  host_config.audio_test_tone_level = env_double("PI_FARTBOX_AUDIO_TEST_TONE_LEVEL", host_config.audio_test_tone_level);
+
+  pi_fartbox::platform::LinuxHost host(host_config);
+  pi_fartbox::platform::AlsaPlaybackEngine audio_engine(host_config);
   pi_fartbox::control::ControlServer control;
   pi_fartbox::controller::SlmkiiiMapper controller;
   pi_fartbox::zynthian::ZynthianAdapter zynthian;
 
-  const auto summary = make_summary(engine, sessions, host, control, controller, zynthian);
+  const auto audio_started = audio_engine.start();
+  if (tone_test_seconds.has_value()) {
+    std::this_thread::sleep_for(std::chrono::seconds(*tone_test_seconds));
+  }
+  const auto audio_status = audio_engine.status();
+
+  const auto summary = make_summary(engine, sessions, host, audio_status, control, controller, zynthian);
   std::cout << summary;
 
   const auto state_dir = std::filesystem::path(sessions.paths().session_root).parent_path();
@@ -262,16 +364,25 @@ auto main(int argc, char** argv) -> int {
           .output_connected = false,
           .sysex_enabled = controller.config().enable_sysex_feedback,
       });
-  write_runtime_state_json(state_dir, engine, sessions, host, control, controller_context);
+  write_runtime_state_json(state_dir, engine, sessions, host, audio_status, control, controller_context);
 
   if (one_shot) {
+    audio_engine.stop();
+    return audio_started ? 0 : 2;
+  }
+
+  if (tone_test_seconds.has_value()) {
+    audio_engine.stop();
     return 0;
   }
 
   install_signal_handlers();
   while (g_should_run.load()) {
+    write_runtime_state_json(state_dir, engine, sessions, host, audio_engine.status(), control, controller_context);
     std::this_thread::sleep_for(1s);
   }
+
+  audio_engine.stop();
 
   return 0;
 }
