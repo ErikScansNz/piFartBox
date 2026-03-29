@@ -53,10 +53,11 @@
 ## Build Baseline
 - The first live Pi target is treated as a legacy ARMv6 runtime appliance.
 - The preferred build model is modern-host cross-compile plus deploy.
+- The first supported Windows-host baseline is `Ubuntu 22.04` under WSL.
 - Native compilation on the Pi is not the primary supported path.
-- See `docs/target-compatibility-decision.md` and `docs/cross-compile-and-deploy.md`.
+- See `docs/target-compatibility-decision.md`, `docs/cross-compile-and-deploy.md`, and `docs/wsl-cross-build-host.md`.
 
 ## Current Status
 Repository bootstrap and governance scaffolding are complete.
-Runtime foundation scaffolding is in progress.
+Runtime foundation, schema, and the first ARMv6 cross-build baseline are in place.
 See `docs/todo.md` for the next active tasks.

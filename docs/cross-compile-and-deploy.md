@@ -28,20 +28,26 @@ Toolchain file:
 ## Host Prerequisites
 Preferred host:
 - Linux machine or WSL distro with Debian/Ubuntu-style package management
+- current supported Windows-host baseline: `Ubuntu 22.04` under WSL
 
 Expected packages:
+- `build-essential`
 - `cmake`
 - `ninja-build`
-- `g++`
+- `pkg-config`
+- `git`
 - `gcc-arm-linux-gnueabihf`
 - `g++-arm-linux-gnueabihf`
 - `python3`
+- `python3-pip`
 
-Current local fact:
-- this Windows machine does not currently have WSL installed
-- this Windows machine does not currently have a direct ARM Linux cross compiler on PATH
+See:
+- `docs/wsl-cross-build-host.md`
 
-So this task establishes the supported baseline and scripts, but host-side validation still depends on installing a suitable build host/toolchain.
+Current local validation:
+- `Ubuntu 22.04` is installed under WSL2 on the primary Windows workstation
+- the ARMv6 cross toolchain is installed and on PATH inside WSL
+- `./scripts/build/cross_build_armv6.sh` successfully configures and builds the runtime probe from `/mnt/c/piFartBox`
 
 ## Build Target
 The first deployable artifact target is:
@@ -112,7 +118,7 @@ Do not lower the repo to the old native Pi toolchain.
 Do not begin with a blind full system update.
 
 Instead:
-- install or provision a Linux/WSL cross-build host
+- use the documented Linux/WSL cross-build host baseline
 - validate the ARMv6 toolchain file
 - build the runtime probe
 - deploy and run it on the Pi

@@ -1,6 +1,7 @@
 param(
   [string]$BuildDir = "build-armv6",
-  [string]$ToolchainFile = "cmake/toolchains/armv6-rpi1-linux-gnueabihf.cmake"
+  [string]$ToolchainFile = "cmake/toolchains/armv6-rpi1-linux-gnueabihf.cmake",
+  [string]$Distro = "Ubuntu-22.04"
 )
 
 Set-StrictMode -Version Latest
@@ -16,10 +17,10 @@ $linuxRepoPath = "/mnt/" + $repoPath.Substring(0,1).ToLower() + $repoPath.Substr
 $linuxBuildDir = $BuildDir
 $linuxToolchain = $ToolchainFile
 
-$script = @"
+$bashCommand = @"
 set -e
 if ! command -v arm-linux-gnueabihf-g++ >/dev/null 2>&1; then
-  echo "error: arm-linux-gnueabihf-g++ not found in WSL" >&2
+  echo 'error: arm-linux-gnueabihf-g++ not found in WSL' >&2
   exit 1
 fi
 cd '$linuxRepoPath'
@@ -27,4 +28,4 @@ cmake -S . -B '$linuxBuildDir' -G Ninja -DCMAKE_TOOLCHAIN_FILE='$linuxToolchain'
 cmake --build '$linuxBuildDir'
 "@
 
-wsl bash -lc $script
+wsl -d $Distro -- bash -lc $bashCommand

@@ -94,6 +94,7 @@ Recommended naming:
 - Zynthian integration should be treated as a primary platform contract, not an afterthought.
 - The first live Pi should be treated as a legacy ARMv6 runtime target, not the primary development build host.
 - Prefer cross-compile + deploy for the Pi 1 B+ baseline unless a later task explicitly changes that decision.
+- Prefer `Ubuntu 22.04` under WSL as the first supported local Windows cross-build host baseline.
 
 ## Updater Rules
 - `piFartBox` must maintain a documented codebase update path for the deployed Pi system.
@@ -108,6 +109,11 @@ Recommended naming:
   - minimal operator steps
 - When cross-built artifacts are introduced, document how artifact deployment relates to source-repo deployment and update scripts/docs together.
 - Updater scripts and manifests must be versioned in the repository and referenced from task plans when changed.
+
+## Local Build Host Rules
+- The preferred local Windows build path is WSL, not native Windows compilation.
+- Keep the first supported WSL host baseline documented in `docs/wsl-cross-build-host.md`.
+- If build host assumptions change, update `docs/wsl-cross-build-host.md`, `docs/cross-compile-and-deploy.md`, and any helper scripts in the same patch.
 
 ## Definition of Done For Substantial Tasks
 - A full plan exists in `docs/plans/`.
