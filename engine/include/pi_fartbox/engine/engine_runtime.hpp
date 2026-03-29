@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pi_fartbox/engine/device_registry.hpp"
+
 #include <cstdint>
 #include <string_view>
 
@@ -16,12 +18,15 @@ class EngineRuntime {
   explicit EngineRuntime(EngineRuntimeConfig config = {});
 
   [[nodiscard]] auto config() const noexcept -> const EngineRuntimeConfig&;
+  [[nodiscard]] auto registry() noexcept -> DeviceRegistry&;
+  [[nodiscard]] auto registry() const noexcept -> const DeviceRegistry&;
   [[nodiscard]] auto subsystem_name() const noexcept -> std::string_view;
 
   static auto default_slot_count() noexcept -> std::uint32_t;
 
  private:
   EngineRuntimeConfig config_;
+  DeviceRegistry registry_;
 };
 
 }  // namespace pi_fartbox::engine

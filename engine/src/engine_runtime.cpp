@@ -8,6 +8,14 @@ auto EngineRuntime::config() const noexcept -> const EngineRuntimeConfig& {
   return config_;
 }
 
+auto EngineRuntime::registry() noexcept -> DeviceRegistry& {
+  return registry_;
+}
+
+auto EngineRuntime::registry() const noexcept -> const DeviceRegistry& {
+  return registry_;
+}
+
 auto EngineRuntime::subsystem_name() const noexcept -> std::string_view {
   return "engine-core";
 }

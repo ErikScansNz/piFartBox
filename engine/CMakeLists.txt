@@ -1,4 +1,6 @@
 add_library(pi_fartbox_engine_core STATIC
+  src/device_registry.cpp
+  src/device_schema.cpp
   src/engine_runtime.cpp
 )
 
