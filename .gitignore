@@ -3,6 +3,8 @@
 /.cache/
 /.vscode/
 /.idea/
+__pycache__/
+*.pyc
 *.user
 *.suo
 *.ninja_deps
