@@ -43,6 +43,11 @@
 - Completed work is moved to `docs/completedTasks.md`
 - Detailed task context belongs in plan files, not in root-level docs
 
+## Update Workflow
+- The primary deployed-system update path is USB-first.
+- Updates are expected to travel on USB mass storage as a git bundle plus manifest.
+- See `docs/updater-system.md` and `scripts/update/`.
+
 ## Current Status
 Repository bootstrap and governance scaffolding are complete.
 See `docs/todo.md` for the next active tasks.

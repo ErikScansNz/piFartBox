@@ -31,6 +31,7 @@ The following files and directories are mandatory and must remain in use:
 - `docs/plans/`
 - `docs/todo.md`
 - `docs/completedTasks.md`
+- `docs/updater-system.md`
 
 ## LLM Workflow Rules
 1. Explore the repository first before proposing or making changes.
@@ -89,6 +90,19 @@ Recommended naming:
 - The engine owns the canonical schema; browser/UI code consumes exported metadata.
 - Slot, session, and controller workflows must be designed for multitimbral live use.
 - Zynthian integration should be treated as a primary platform contract, not an afterthought.
+
+## Updater Rules
+- `piFartBox` must maintain a documented codebase update path for the deployed Pi system.
+- The preferred update transport is USB mass storage media, not direct USB gadget/device mode.
+- Do not assume Raspberry Pi 1 B+ can be updated by plugging it into a host computer as a USB device.
+- The updater workflow must remain simple enough for field updates without network dependency.
+- Repository changes that alter deployment, install layout, or runtime startup must update `docs/updater-system.md` in the same patch.
+- Updater tooling should preserve:
+  - a clear install root
+  - a predictable backup/rollback path
+  - a recorded deployed revision or bundle identifier
+  - minimal operator steps
+- Updater scripts and manifests must be versioned in the repository and referenced from task plans when changed.
 
 ## Definition of Done For Substantial Tasks
 - A full plan exists in `docs/plans/`.
