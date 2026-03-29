@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>piFartBox</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08111f;
+        --panel: #11243b;
+        --line: #33536e;
+        --text: #e7f0ff;
+        --muted: #95abc5;
+        --accent: #f8b94b;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top, rgba(78, 124, 176, 0.28), transparent 42%),
+          linear-gradient(180deg, #0d1b2d 0%, var(--bg) 100%);
+        color: var(--text);
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(720px, calc(100vw - 32px));
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(17, 36, 59, 0.92);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+
+      p {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      code {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>piFartBox</h1>
+      <p>The local platform provisioning baseline is installed.</p>
+      <p>Static web assets are being served from <code>/opt/piFartBox/web</code>.</p>
+      <p>The runtime service will activate once <code>/opt/piFartBox/runtime-current/bin/pi_fartbox_runtime</code> exists.</p>
+    </main>
+  </body>
+</html>

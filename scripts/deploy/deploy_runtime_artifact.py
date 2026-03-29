@@ -71,6 +71,7 @@ def main():
             quoted_deploy = shlex.quote(args.deploy_root)
             quoted_user = shlex.quote(args.user)
             quoted_commit = shlex.quote(commit)
+            quoted_artifact_name = shlex.quote(args.artifact_name)
             remote_archive = f"{args.remote_staging_root}/piFartBox-runtime-{commit}.tar.gz"
 
             code, out, err = ssh_exec(client, f"mkdir -p {quoted_staging}")
@@ -88,6 +89,7 @@ def main():
 set -e
 echo {quoted_password} | sudo -S mkdir -p {quoted_deploy}/runtime/{quoted_commit}
 echo {quoted_password} | sudo -S tar -xzf {shlex.quote(remote_archive)} -C {quoted_deploy}/runtime/{quoted_commit} --strip-components=1
+echo {quoted_password} | sudo -S chmod 755 {quoted_deploy}/runtime/{quoted_commit}/bin/{quoted_artifact_name}
 echo {quoted_password} | sudo -S ln -sfn {quoted_deploy}/runtime/{quoted_commit} {quoted_deploy}/runtime-current
 echo {quoted_password} | sudo -S chown -R {quoted_user}:{quoted_user} {quoted_deploy}/runtime {quoted_deploy}/runtime-current
 """

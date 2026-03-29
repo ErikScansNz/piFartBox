@@ -1,0 +1,22 @@
+[Unit]
+Description=piFartBox Runtime
+After=network-online.target sound.target
+Wants=network-online.target
+ConditionPathExists=/opt/piFartBox/runtime-current/bin/pi_fartbox_runtime
+
+[Service]
+Type=simple
+User=pi
+Group=audio
+WorkingDirectory=/opt/piFartBox
+Environment=PI_FARTBOX_STATE_DIR=/var/lib/piFartBox
+Environment=PI_FARTBOX_LOG_DIR=/var/log/piFartBox
+ExecStart=/opt/piFartBox/runtime-current/bin/pi_fartbox_runtime
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+LimitRTPRIO=95
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target

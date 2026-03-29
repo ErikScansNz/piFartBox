@@ -1,7 +1,8 @@
 param(
   [string]$BuildDir = "build-armv6",
   [string]$ToolchainFile = "cmake/toolchains/armv6-rpi1-linux-gnueabihf.cmake",
-  [string]$Distro = "Ubuntu-22.04"
+  [string]$Distro = "Ubuntu-22.04",
+  [string]$TargetSysroot = ""
 )
 
 Set-StrictMode -Version Latest
@@ -16,6 +17,11 @@ $repoPath = (Resolve-Path ".").Path
 $linuxRepoPath = "/mnt/" + $repoPath.Substring(0,1).ToLower() + $repoPath.Substring(2).Replace("\","/")
 $linuxBuildDir = $BuildDir
 $linuxToolchain = $ToolchainFile
+$linuxTargetSysroot = ""
+if ($TargetSysroot) {
+  $resolvedSysroot = (Resolve-Path $TargetSysroot).Path
+  $linuxTargetSysroot = "/mnt/" + $resolvedSysroot.Substring(0,1).ToLower() + $resolvedSysroot.Substring(2).Replace("\","/")
+}
 
 $bashCommand = @"
 set -e
@@ -24,7 +30,7 @@ if ! command -v arm-linux-gnueabihf-g++ >/dev/null 2>&1; then
   exit 1
 fi
 cd '$linuxRepoPath'
-cmake -S . -B '$linuxBuildDir' -G Ninja -DCMAKE_TOOLCHAIN_FILE='$linuxToolchain'
+cmake -S . -B '$linuxBuildDir' -G Ninja -DCMAKE_TOOLCHAIN_FILE='$linuxToolchain'$(if ($linuxTargetSysroot) { " -DPI_FARTBOX_TARGET_SYSROOT='$linuxTargetSysroot'" })
 cmake --build '$linuxBuildDir'
 "@
 

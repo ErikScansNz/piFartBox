@@ -1,10 +1,10 @@
 # AGENTS.md
 
 ## Purpose
-This repository builds the new production synth workstation `piFartBox` for Raspberry Pi 1 B+ running `ZynthianOS`.
+This repository builds the new production synth workstation `piFartBox` for Raspberry Pi 1 B+ running a fresh `Raspberry Pi OS Lite 32-bit` deployment baseline.
 
 ## Product Truths
-- `ZynthianOS` is the deployment base.
+- `Raspberry Pi OS Lite 32-bit` is the deployment base.
 - The only audio runtime is the native C++ engine.
 - The browser is a Pi-hosted editor/control surface only.
 - The engine schema is the source of truth for modules, instruments, slots, sessions, and controller metadata.
@@ -91,10 +91,10 @@ Recommended naming:
 - Do not add browser-side audio synthesis or a browser emulator as a source of truth.
 - The engine owns the canonical schema; browser/UI code consumes exported metadata.
 - Slot, session, and controller workflows must be designed for multitimbral live use.
-- Zynthian integration should be treated as a primary platform contract, not an afterthought.
 - The first live Pi should be treated as a legacy ARMv6 runtime target, not the primary development build host.
 - Prefer cross-compile + deploy for the Pi 1 B+ baseline unless a later task explicitly changes that decision.
 - Prefer `Ubuntu 22.04` under WSL as the first supported local Windows cross-build host baseline.
+- The initial target audio stack is ALSA-first; JACK and PREEMPT_RT are later tasks.
 
 ## Updater Rules
 - `piFartBox` must maintain a documented codebase update path for the deployed Pi system.

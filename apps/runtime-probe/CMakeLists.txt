@@ -11,3 +11,9 @@ target_link_libraries(pi_fartbox_runtime_probe
     pi_fartbox_session_manager
     pi_fartbox_zynthian_adapter
 )
+
+target_link_options(pi_fartbox_runtime_probe
+  PRIVATE
+    -static-libstdc++
+    -static-libgcc
+)

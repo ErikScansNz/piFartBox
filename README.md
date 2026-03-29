@@ -3,7 +3,7 @@
 `piFartBox` is the new Linux-native synth workstation codebase for Raspberry Pi 1 B+.
 
 ## Product Direction
-- Deployment base: `ZynthianOS`
+- Deployment base: fresh `Raspberry Pi OS Lite 32-bit`
 - Audio runtime: native C++ engine only
 - Browser role: Pi-hosted editor/control surface only
 - Product model: curated modular instruments assigned to 4 live slots
@@ -19,7 +19,6 @@
 - `engine-core`: DSP graph execution, slots, voices, modulation, FX, load/save hooks
 - `session-manager`: sessions, slot assignments, mixer state, controller mappings
 - `control-server`: Pi-hosted API for browser and controller/admin actions
-- `zynthian-adapter`: native Zynthian integration layer
 - `controller-mapper`: SL MkIII pages, LEDs, display, and slot workflow
 
 ## Canonical Model
@@ -55,7 +54,9 @@
 - The preferred build model is modern-host cross-compile plus deploy.
 - The first supported Windows-host baseline is `Ubuntu 22.04` under WSL.
 - Native compilation on the Pi is not the primary supported path.
-- See `docs/target-compatibility-decision.md`, `docs/cross-compile-and-deploy.md`, and `docs/wsl-cross-build-host.md`.
+- The first target OS baseline is fresh `Raspberry Pi OS Lite 32-bit`.
+- The first target audio baseline is ALSA-first.
+- See `docs/platform-provisioning.md`, `docs/target-compatibility-decision.md`, `docs/cross-compile-and-deploy.md`, and `docs/wsl-cross-build-host.md`.
 
 ## Current Status
 Repository bootstrap and governance scaffolding are complete.
