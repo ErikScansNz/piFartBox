@@ -44,7 +44,8 @@ if [[ -n "$WEB_SOURCE_DIR" && -d "$WEB_SOURCE_DIR" ]]; then
   rsync -a "$WEB_SOURCE_DIR"/ "$WEB_ROOT"/
 fi
 
-install -m 0644 "$SERVICE_SOURCE_DIR/pifartbox-runtime.service" /etc/systemd/system/pifartbox-runtime.service
+sed "s/@TARGET_USER@/$TARGET_USER/g" "$SERVICE_SOURCE_DIR/pifartbox-runtime.service" > /etc/systemd/system/pifartbox-runtime.service
+chmod 0644 /etc/systemd/system/pifartbox-runtime.service
 install -m 0644 "$NGINX_SOURCE_DIR/pifartbox.conf" /etc/nginx/sites-available/pifartbox.conf
 ln -sfn /etc/nginx/sites-available/pifartbox.conf /etc/nginx/sites-enabled/pifartbox.conf
 rm -f /etc/nginx/sites-enabled/default

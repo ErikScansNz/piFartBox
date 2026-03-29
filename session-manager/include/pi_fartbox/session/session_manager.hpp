@@ -6,7 +6,7 @@
 namespace pi_fartbox::session {
 
 struct SessionPaths {
-  std::string session_root = "/opt/piFartBox/sessions";
+  std::string session_root = "/var/lib/piFartBox/sessions";
   std::string content_root = "/opt/piFartBox/content";
   std::string controller_profile_root = "/opt/piFartBox/content/controller-profiles";
 };

@@ -6,7 +6,7 @@ ConditionPathExists=/opt/piFartBox/runtime-current/bin/pi_fartbox_runtime
 
 [Service]
 Type=simple
-User=pi
+User=@TARGET_USER@
 Group=audio
 WorkingDirectory=/opt/piFartBox
 Environment=PI_FARTBOX_STATE_DIR=/var/lib/piFartBox

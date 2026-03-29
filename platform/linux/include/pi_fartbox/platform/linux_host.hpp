@@ -8,7 +8,7 @@ namespace pi_fartbox::platform {
 struct LinuxHostConfig {
   std::string install_root = "/opt/piFartBox";
   std::string usb_update_root = "/media/usb0/piFartBox-update";
-  std::string audio_backend = "jack";
+  std::string audio_backend = "alsa";
 };
 
 class LinuxHost {

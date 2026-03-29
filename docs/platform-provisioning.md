@@ -47,6 +47,7 @@
 - `pifartbox-runtime.service`
   - points at `/opt/piFartBox/runtime-current/bin/pi_fartbox_runtime`
   - starts only when a deployed runtime exists
+  - runs as the configured target login user from provisioning
 - `nginx`
   - serves the local browser surface
   - reserves `/api/` for the local control/runtime API

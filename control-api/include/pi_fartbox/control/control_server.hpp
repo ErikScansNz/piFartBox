@@ -8,7 +8,7 @@ namespace pi_fartbox::control {
 
 struct ControlServerConfig {
   std::string bind_host = "127.0.0.1";
-  std::uint16_t bind_port = 8181;
+  std::uint16_t bind_port = 17890;
   bool local_only = true;
 };
 
