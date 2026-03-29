@@ -1,6 +1,7 @@
 #include "pi_fartbox/engine/device_registry.hpp"
 
 #include <algorithm>
+#include <map>
 
 namespace pi_fartbox::engine {
 
@@ -45,8 +46,70 @@ auto InstrumentCompiler::validate(const InstrumentDefinition& instrument) const 
   return registry_.validate_instrument(instrument);
 }
 
-auto InstrumentCompiler::compile(const InstrumentDefinition& instrument) const -> bool {
-  return validate(instrument).empty();
+auto InstrumentCompiler::compile(const InstrumentDefinition& instrument) const -> std::optional<CompiledInstrument> {
+  if (!validate(instrument).empty()) {
+    return std::nullopt;
+  }
+
+  RuntimeGraph runtime_graph;
+  for (const auto& device : instrument.devices) {
+    const auto* device_type = registry_.find_device_type(device.type_id);
+    if (!device_type) {
+      return std::nullopt;
+    }
+
+    const DeviceExecutionNode node{
+        .device_id = device.id,
+        .type_id = device.type_id,
+        .category = device_type->category,
+    };
+
+    switch (device_type->category) {
+      case DeviceCategory::event:
+        runtime_graph.event_nodes.push_back(node);
+        break;
+      case DeviceCategory::mod:
+        runtime_graph.mod_nodes.push_back(node);
+        break;
+      default:
+        runtime_graph.audio_nodes.push_back(node);
+        break;
+    }
+  }
+
+  std::map<std::string, CompiledInstrumentPage> pages_by_id;
+  for (const auto& control : instrument.exported_controls) {
+    const auto page_id = control.preferred_page.empty() ? std::string("instrument") : control.preferred_page;
+    auto& page = pages_by_id[page_id];
+    page.id = page_id;
+    page.title = page_id;
+    page.controls.push_back(control);
+  }
+
+  std::vector<CompiledInstrumentPage> generated_pages;
+  generated_pages.reserve(pages_by_id.size());
+  for (auto& [page_id, page] : pages_by_id) {
+    generated_pages.push_back(std::move(page));
+  }
+
+  VoiceDefinition voice_definition{
+      .composite_device_id = "voice_strip",
+      .polyphony = 8,
+      .mod_routes = {
+          CuratedModRoute{.source = CuratedModSource::amp_envelope, .target = CuratedModTarget::vca_level, .depth = 1.0},
+          CuratedModRoute{.source = CuratedModSource::filter_envelope, .target = CuratedModTarget::filter_cutoff, .depth = 1.0},
+          CuratedModRoute{.source = CuratedModSource::lfo, .target = CuratedModTarget::filter_cutoff, .depth = 0.35},
+          CuratedModRoute{.source = CuratedModSource::velocity, .target = CuratedModTarget::vca_level, .depth = 0.5},
+      },
+  };
+
+  return CompiledInstrument{
+      .instrument = instrument,
+      .runtime_graph = std::move(runtime_graph),
+      .voice_definition = std::move(voice_definition),
+      .exported_controls = instrument.exported_controls,
+      .generated_pages = std::move(generated_pages),
+  };
 }
 
 }  // namespace pi_fartbox::engine

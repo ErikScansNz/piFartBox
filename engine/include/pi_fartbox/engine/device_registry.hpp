@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pi_fartbox/engine/runtime_model.hpp"
 #include "pi_fartbox/engine/device_schema.hpp"
 
 #include <optional>
@@ -30,7 +31,7 @@ class InstrumentCompiler {
   explicit InstrumentCompiler(const DeviceRegistry& registry);
 
   [[nodiscard]] auto validate(const InstrumentDefinition& instrument) const -> std::vector<GraphValidationIssue>;
-  [[nodiscard]] auto compile(const InstrumentDefinition& instrument) const -> bool;
+  [[nodiscard]] auto compile(const InstrumentDefinition& instrument) const -> std::optional<CompiledInstrument>;
 
  private:
   const DeviceRegistry& registry_;

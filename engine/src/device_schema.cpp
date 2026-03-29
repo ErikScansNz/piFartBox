@@ -386,6 +386,93 @@ auto starter_device_palette() -> std::vector<DeviceTypeDefinition> {
   };
 }
 
+auto starter_subtractive_instrument_definition() -> InstrumentDefinition {
+  return InstrumentDefinition{
+      .id = "instrument.subtractive_test",
+      .version = 1,
+      .name = "Subtractive Test",
+      .devices = {
+          DeviceInstance{.id = "voice_strip", .type_id = "composite.voice_strip"},
+          DeviceInstance{.id = "oscillator", .type_id = "source.oscillator"},
+          DeviceInstance{.id = "filter", .type_id = "tone.multimode_filter"},
+          DeviceInstance{.id = "amp_env", .type_id = "mod.adsr"},
+          DeviceInstance{.id = "vca", .type_id = "mix.vca"},
+          DeviceInstance{.id = "clock", .type_id = "event.clock"},
+          DeviceInstance{.id = "delay", .type_id = "fx.delay"},
+      },
+      .connections = {
+          DeviceConnection{.id = "osc-to-filter", .source = {.device_id = "oscillator", .port_id = "audio_out"}, .target = {.device_id = "filter", .port_id = "audio_in"}},
+          DeviceConnection{.id = "filter-to-vca", .source = {.device_id = "filter", .port_id = "audio_out"}, .target = {.device_id = "vca", .port_id = "audio_in"}},
+          DeviceConnection{.id = "env-to-vca", .source = {.device_id = "amp_env", .port_id = "mod_out"}, .target = {.device_id = "vca", .port_id = "mod_in"}},
+          DeviceConnection{.id = "clock-to-delay", .source = {.device_id = "clock", .port_id = "clock_out"}, .target = {.device_id = "delay", .port_id = "clock_in"}},
+      },
+      .exported_controls = {
+          ExportedControlDefinition{
+              .id = "osc-waveform",
+              .source_device_id = "oscillator",
+              .source_parameter_id = "waveform",
+              .display = make_display("Wave", "Waveform", "Oscillator", "Oscillator waveform."),
+              .control_intent = ControlIntent::knob,
+              .visible = true,
+              .automation_visible = true,
+              .preferred_page = "osc",
+          },
+          ExportedControlDefinition{
+              .id = "osc-shape",
+              .source_device_id = "oscillator",
+              .source_parameter_id = "shape",
+              .display = make_display("Shape", "Shape", "Oscillator", "Oscillator shape."),
+              .control_intent = ControlIntent::knob,
+              .visible = true,
+              .automation_visible = true,
+              .preferred_page = "osc",
+          },
+          ExportedControlDefinition{
+              .id = "filter-cutoff",
+              .source_device_id = "filter",
+              .source_parameter_id = "cutoff",
+              .display = make_display("Cut", "Cutoff", "Filter", "Filter cutoff."),
+              .control_intent = ControlIntent::knob,
+              .visible = true,
+              .automation_visible = true,
+              .preferred_page = "filter",
+          },
+          ExportedControlDefinition{
+              .id = "filter-resonance",
+              .source_device_id = "filter",
+              .source_parameter_id = "resonance",
+              .display = make_display("Reso", "Resonance", "Filter", "Filter resonance."),
+              .control_intent = ControlIntent::knob,
+              .visible = true,
+              .automation_visible = true,
+              .preferred_page = "filter",
+          },
+          ExportedControlDefinition{
+              .id = "amp-attack",
+              .source_device_id = "amp_env",
+              .source_parameter_id = "attack_ms",
+              .display = make_display("Atk", "Attack", "Envelope", "Amp envelope attack."),
+              .control_intent = ControlIntent::fader,
+              .visible = true,
+              .automation_visible = true,
+              .preferred_page = "env",
+          },
+          ExportedControlDefinition{
+              .id = "amp-release",
+              .source_device_id = "amp_env",
+              .source_parameter_id = "release_ms",
+              .display = make_display("Rel", "Release", "Envelope", "Amp envelope release."),
+              .control_intent = ControlIntent::fader,
+              .visible = true,
+              .automation_visible = true,
+              .preferred_page = "env",
+          },
+      },
+      .default_pages = {"osc", "filter", "env"},
+      .validation_notes = {"starter-subtractive-composite"},
+  };
+}
+
 auto validate_instrument_definition(
     const InstrumentDefinition& instrument,
     const std::vector<DeviceTypeDefinition>& device_types) -> std::vector<GraphValidationIssue> {

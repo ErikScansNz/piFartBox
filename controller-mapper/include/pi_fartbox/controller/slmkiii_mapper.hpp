@@ -1,16 +1,10 @@
 #pragma once
 
-#include <cstdint>
-#include <string>
+#include "pi_fartbox/controller/controller_core.hpp"
+
 #include <string_view>
 
 namespace pi_fartbox::controller {
-
-struct SlmkiiiMapperConfig {
-  std::string device_name = "Novation SL MkIII";
-  std::uint32_t slot_count = 4;
-  bool enable_sysex_feedback = true;
-};
 
 class SlmkiiiMapper {
  public:
@@ -18,9 +12,15 @@ class SlmkiiiMapper {
 
   [[nodiscard]] auto config() const noexcept -> const SlmkiiiMapperConfig&;
   [[nodiscard]] auto subsystem_name() const noexcept -> std::string_view;
+  [[nodiscard]] auto midi_router() noexcept -> MidiRouter&;
+  [[nodiscard]] auto midi_router() const noexcept -> const MidiRouter&;
+  [[nodiscard]] auto controller_core() noexcept -> SlmkiiiControllerCore&;
+  [[nodiscard]] auto controller_core() const noexcept -> const SlmkiiiControllerCore&;
 
  private:
   SlmkiiiMapperConfig config_;
+  MidiRouter midi_router_{};
+  SlmkiiiControllerCore controller_core_;
 };
 
 }  // namespace pi_fartbox::controller

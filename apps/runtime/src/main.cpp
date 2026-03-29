@@ -16,6 +16,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace {
 
@@ -63,6 +64,15 @@ auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
                   const pi_fartbox::control::ControlServer& control,
                   const pi_fartbox::controller::SlmkiiiMapper& controller,
                   const pi_fartbox::zynthian::ZynthianAdapter& zynthian) -> std::string {
+  const auto controller_context = controller.controller_core().make_context(
+      engine,
+      pi_fartbox::controller::PortRoleStatus{
+          .midi_input_name = "auto",
+          .midi_output_name = "auto",
+          .input_connected = false,
+          .output_connected = false,
+          .sysex_enabled = controller.config().enable_sysex_feedback,
+      });
   std::ostringstream out;
   out << "piFartBox runtime\n";
   out << "started_at: " << current_timestamp() << "\n";
@@ -77,6 +87,18 @@ auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
   out << "control_endpoint: " << control.config().bind_host << ":" << control.config().bind_port << "\n";
   out << "controller: " << controller.subsystem_name() << "\n";
   out << "controller_device: " << controller.config().device_name << "\n";
+  out << "focused_slot: " << controller_context.focused_slot_id << "\n";
+  out << "controller_pages: " << controller_context.pages.size() << "\n";
+  for (const auto& slot : engine.slot_runtimes()) {
+    out << "slot[" << slot.slot_id << "]: channel=" << static_cast<int>(slot.midi_channel)
+        << " focused=" << (slot.focused ? "yes" : "no")
+        << " voices=" << slot.voices.size();
+    if (slot.compiled_instrument.has_value()) {
+      out << " instrument=" << slot.compiled_instrument->instrument.name
+          << " pages=" << slot.compiled_instrument->generated_pages.size();
+    }
+    out << "\n";
+  }
   out << "zynthian_adapter: " << zynthian.subsystem_name() << "\n";
   return out.str();
 }

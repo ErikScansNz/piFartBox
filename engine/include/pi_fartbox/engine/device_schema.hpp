@@ -221,6 +221,7 @@ struct GraphValidationIssue {
 };
 
 [[nodiscard]] auto starter_device_palette() -> std::vector<DeviceTypeDefinition>;
+[[nodiscard]] auto starter_subtractive_instrument_definition() -> InstrumentDefinition;
 [[nodiscard]] auto validate_instrument_definition(
   const InstrumentDefinition& instrument,
   const std::vector<DeviceTypeDefinition>& device_types) -> std::vector<GraphValidationIssue>;

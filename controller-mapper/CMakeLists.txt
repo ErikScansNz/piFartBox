@@ -1,4 +1,5 @@
 add_library(pi_fartbox_controller_mapper STATIC
+  src/controller_core.cpp
   src/slmkiii_mapper.cpp
 )
 
