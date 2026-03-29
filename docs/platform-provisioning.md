@@ -23,7 +23,7 @@
 - `python3-venv`
 - `avahi-daemon`
 - `alsa-utils`
-- `libasound2`
+- `libasound2` or `libasound2t64` depending on the Raspberry Pi OS release
 - `nginx-light`
 - `udisks2`
 - `dosfstools`
@@ -57,6 +57,20 @@
   - `scripts/provision/bootstrap_pi_os.py`
 - target shell script:
   - `scripts/provision/provision_pi_os.sh`
+
+## Provisioning Modes
+- `install-only`
+  - default first-run mode
+  - runs `apt-get update` and installs the package baseline
+- `full-upgrade`
+  - runs a full package upgrade before installing the baseline
+- `skip`
+  - skips apt work and only applies filesystem, nginx, and systemd scaffolding
+
+## Operator Experience
+- provisioning should stream live output over SSH
+- the target script should print explicit step markers so long-running apt work does not look hung
+- for the first boot on Raspberry Pi 1 B+, prefer `install-only` unless a full upgrade is specifically required
 
 ## Notes
 - The provisioning step intentionally installs scaffolding before the final runtime exists.

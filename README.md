@@ -61,4 +61,5 @@
 ## Current Status
 Repository bootstrap and governance scaffolding are complete.
 Runtime foundation, schema, and the first ARMv6 cross-build baseline are in place.
+Provisioning for fresh Raspberry Pi OS targets supports streamed output and selectable apt modes.
 See `docs/todo.md` for the next active tasks.
