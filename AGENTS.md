@@ -92,6 +92,8 @@ Recommended naming:
 - The engine owns the canonical schema; browser/UI code consumes exported metadata.
 - Slot, session, and controller workflows must be designed for multitimbral live use.
 - Zynthian integration should be treated as a primary platform contract, not an afterthought.
+- The first live Pi should be treated as a legacy ARMv6 runtime target, not the primary development build host.
+- Prefer cross-compile + deploy for the Pi 1 B+ baseline unless a later task explicitly changes that decision.
 
 ## Updater Rules
 - `piFartBox` must maintain a documented codebase update path for the deployed Pi system.
@@ -104,6 +106,7 @@ Recommended naming:
   - a predictable backup/rollback path
   - a recorded deployed revision or bundle identifier
   - minimal operator steps
+- When cross-built artifacts are introduced, document how artifact deployment relates to source-repo deployment and update scripts/docs together.
 - Updater scripts and manifests must be versioned in the repository and referenced from task plans when changed.
 
 ## Definition of Done For Substantial Tasks

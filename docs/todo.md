@@ -4,5 +4,3 @@ Status values: `planned`, `in-progress`, `blocked`.
 
 | Task ID | Title | Status | Owner | Plan | Last Updated |
 | --- | --- | --- | --- | --- | --- |
-| TASK-0006 | Target toolchain compatibility baseline | in-progress | Architect | [TASK-0006](./plans/TASK-0006-target-toolchain-compatibility.md) | 2026-03-29 |
-| TASK-0007 | Cross-compile and deploy baseline | planned | Architect | [TASK-0007](./plans/TASK-0007-cross-compile-and-deploy-baseline.md) | 2026-03-29 |

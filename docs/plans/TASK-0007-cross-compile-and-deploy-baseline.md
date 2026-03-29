@@ -21,6 +21,7 @@ Establish the first supported build/deploy path where `piFartBox` is built on a 
   - prebuilt binaries/artifacts
 - align the updater/deploy scripts with the supported cross-build path
 - keep `/opt/piFartBox` as the deployed project root
+- provide a first deployable probe target so the cross-build path has a concrete artifact
 
 ## Interfaces / Types Affected
 - build system

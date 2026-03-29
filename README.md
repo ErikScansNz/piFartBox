@@ -50,6 +50,12 @@
 - Updates are expected to travel on USB mass storage as a git bundle plus manifest.
 - See `docs/updater-system.md` and `scripts/update/`.
 
+## Build Baseline
+- The first live Pi target is treated as a legacy ARMv6 runtime appliance.
+- The preferred build model is modern-host cross-compile plus deploy.
+- Native compilation on the Pi is not the primary supported path.
+- See `docs/target-compatibility-decision.md` and `docs/cross-compile-and-deploy.md`.
+
 ## Current Status
 Repository bootstrap and governance scaffolding are complete.
 Runtime foundation scaffolding is in progress.
