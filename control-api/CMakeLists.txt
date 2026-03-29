@@ -1,0 +1,2 @@
+add_library(pi_fartbox_control_api INTERFACE)
+target_link_libraries(pi_fartbox_control_api INTERFACE pi_fartbox_engine_core pi_fartbox_platform_linux)

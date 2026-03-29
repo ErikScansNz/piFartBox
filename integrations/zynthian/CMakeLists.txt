@@ -1,0 +1,2 @@
+add_library(pi_fartbox_zynthian_adapter INTERFACE)
+target_link_libraries(pi_fartbox_zynthian_adapter INTERFACE pi_fartbox_engine_core pi_fartbox_platform_linux)

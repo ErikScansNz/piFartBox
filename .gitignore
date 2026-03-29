@@ -1,0 +1,12 @@
+/build/
+/out/
+/.cache/
+/.vscode/
+/.idea/
+*.user
+*.suo
+*.ninja_deps
+*.ninja_log
+CMakeCache.txt
+CMakeFiles/
+Testing/

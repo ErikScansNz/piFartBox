@@ -1,0 +1,1 @@
+add_library(pi_fartbox_platform_linux INTERFACE)
