@@ -30,6 +30,14 @@ Align `piFartBox` build assumptions with the actual Raspberry Pi target toolchai
   - or separate host-build and target-build profiles
 - Validate the chosen approach on the live Pi.
 
+### Decision framing
+- explicitly compare:
+  - `legacy-native build on current image`
+  - `full in-place image/toolchain modernization`
+  - `modern host build + legacy target deploy`
+- record one recommended default path for the repository
+- queue the next implementation task based on that recommendation
+
 ## Interfaces / Types Affected
 - top-level build system
 - compiler/language standard assumptions
@@ -43,6 +51,7 @@ Align `piFartBox` build assumptions with the actual Raspberry Pi target toolchai
 ## Assumptions / Defaults
 - the target host from `TASK-0005` remains the first live deployment reference
 - toolchain compatibility must be solved before deeper runtime bring-up on the Pi
+- the repository should prefer the least risky path that keeps the existing Zynthian install usable
 
 ## Out of Scope
 - full audio-engine implementation
