@@ -229,6 +229,19 @@ mkdir -p "$SOURCE_ROOT" "$BUILD_ROOT"
 log_step "Extracting uploaded source archive"
 tar -xzf "$REMOTE_ARCHIVE" -C "$SOURCE_ROOT" --strip-components=1
 chown -R "$TARGET_USER:$TARGET_USER" "$SOURCE_ROOT" "$BUILD_ROOT" "$REPO_ROOT/runtime"
+if [ -d "$SOURCE_ROOT/web" ]; then
+  log_step "Syncing Pi-hosted web assets"
+  mkdir -p "$REPO_ROOT/web"
+  cp -a "$SOURCE_ROOT/web"/. "$REPO_ROOT/web"/
+  chown -R "$TARGET_USER:$TARGET_USER" "$REPO_ROOT/web"
+fi
+if [ -f "$SOURCE_ROOT/deploy/nginx/pifartbox.conf" ] && [ -d /etc/nginx/sites-available ]; then
+  log_step "Refreshing nginx site configuration"
+  install -m 0644 "$SOURCE_ROOT/deploy/nginx/pifartbox.conf" /etc/nginx/sites-available/pifartbox.conf
+  ln -sfn /etc/nginx/sites-available/pifartbox.conf /etc/nginx/sites-enabled/pifartbox.conf
+  rm -f /etc/nginx/sites-enabled/default
+  systemctl reload nginx || systemctl restart nginx || true
+fi
 if [ "$PREFLIGHT_ONLY" = "1" ]; then
   log_step "Preflight complete"
   exit 0

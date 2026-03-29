@@ -58,6 +58,127 @@ void write_runtime_state(const std::filesystem::path& state_dir, const std::stri
   state_file << summary;
 }
 
+auto json_escape(std::string_view input) -> std::string {
+  std::string escaped;
+  escaped.reserve(input.size() + 8);
+  for (const auto ch : input) {
+    switch (ch) {
+      case '\\':
+        escaped += "\\\\";
+        break;
+      case '"':
+        escaped += "\\\"";
+        break;
+      case '\n':
+        escaped += "\\n";
+        break;
+      case '\r':
+        escaped += "\\r";
+        break;
+      case '\t':
+        escaped += "\\t";
+        break;
+      default:
+        escaped.push_back(ch);
+        break;
+    }
+  }
+  return escaped;
+}
+
+void write_runtime_state_json(const std::filesystem::path& state_dir,
+                              const pi_fartbox::engine::EngineRuntime& engine,
+                              const pi_fartbox::session::SessionManager& sessions,
+                              const pi_fartbox::platform::LinuxHost& host,
+                              const pi_fartbox::control::ControlServer& control,
+                              const pi_fartbox::controller::ControllerContext& controller_context) {
+  ensure_directory(state_dir);
+  std::ofstream state_file(state_dir / "runtime-status.json", std::ios::trunc);
+  const auto& probe = host.audio_probe();
+
+  state_file << "{\n";
+  state_file << "  \"generated_at\": \"" << json_escape(current_timestamp()) << "\",\n";
+  state_file << "  \"runtime\": {\n";
+  state_file << "    \"engine\": \"" << json_escape(std::string(engine.subsystem_name())) << "\",\n";
+  state_file << "    \"sample_rate_hz\": " << engine.config().sample_rate_hz << ",\n";
+  state_file << "    \"slot_count\": " << engine.config().slot_count << ",\n";
+  state_file << "    \"session_root\": \"" << json_escape(sessions.paths().session_root) << "\",\n";
+  state_file << "    \"content_root\": \"" << json_escape(sessions.paths().content_root) << "\",\n";
+  state_file << "    \"install_root\": \"" << json_escape(host.config().install_root) << "\",\n";
+  state_file << "    \"control_endpoint\": \"" << json_escape(control.config().bind_host + ":" + std::to_string(control.config().bind_port)) << "\"\n";
+  state_file << "  },\n";
+  state_file << "  \"audio\": {\n";
+  state_file << "    \"backend\": \"" << json_escape(host.config().audio_backend) << "\",\n";
+  state_file << "    \"proc_asound_available\": " << (probe.proc_asound_available ? "true" : "false") << ",\n";
+  state_file << "    \"cards\": [";
+  for (std::size_t index = 0; index < probe.cards.size(); ++index) {
+    if (index > 0) {
+      state_file << ", ";
+    }
+    state_file << "\"" << json_escape(probe.cards[index]) << "\"";
+  }
+  state_file << "],\n";
+  state_file << "    \"pcm_devices\": [";
+  for (std::size_t index = 0; index < probe.pcm_devices.size(); ++index) {
+    if (index > 0) {
+      state_file << ", ";
+    }
+    state_file << "\"" << json_escape(probe.pcm_devices[index]) << "\"";
+  }
+  state_file << "]\n";
+  state_file << "  },\n";
+  state_file << "  \"controller\": {\n";
+  state_file << "    \"focused_slot\": " << controller_context.focused_slot_id << ",\n";
+  state_file << "    \"device_input\": \"" << json_escape(controller_context.port_status.midi_input_name) << "\",\n";
+  state_file << "    \"device_output\": \"" << json_escape(controller_context.port_status.midi_output_name) << "\",\n";
+  state_file << "    \"sysex_enabled\": " << (controller_context.port_status.sysex_enabled ? "true" : "false") << ",\n";
+  state_file << "    \"pages\": [\n";
+  for (std::size_t index = 0; index < controller_context.pages.size(); ++index) {
+    const auto& page = controller_context.pages[index];
+    state_file << "      {\"id\": \"" << json_escape(page.id) << "\", \"title\": \"" << json_escape(page.title)
+               << "\", \"binding_count\": " << page.bindings.size() << "}";
+    if (index + 1 != controller_context.pages.size()) {
+      state_file << ",";
+    }
+    state_file << "\n";
+  }
+  state_file << "    ]\n";
+  state_file << "  },\n";
+  state_file << "  \"slots\": [\n";
+  for (std::size_t index = 0; index < engine.slot_runtimes().size(); ++index) {
+    const auto& slot = engine.slot_runtimes()[index];
+    state_file << "    {\"slot_id\": " << slot.slot_id
+               << ", \"midi_channel\": " << static_cast<int>(slot.midi_channel)
+               << ", \"focused\": " << (slot.focused ? "true" : "false")
+               << ", \"voice_count\": " << slot.voices.size();
+    if (slot.compiled_instrument.has_value()) {
+      state_file << ", \"instrument\": \"" << json_escape(slot.compiled_instrument->instrument.name) << "\"";
+      state_file << ", \"page_count\": " << slot.compiled_instrument->generated_pages.size();
+    }
+    state_file << "}";
+    if (index + 1 != engine.slot_runtimes().size()) {
+      state_file << ",";
+    }
+    state_file << "\n";
+  }
+  state_file << "  ],\n";
+  state_file << "  \"module_palette\": [\n";
+  const auto& device_types = engine.registry().device_types();
+  for (std::size_t index = 0; index < device_types.size(); ++index) {
+    const auto& device = device_types[index];
+    state_file << "    {\"id\": \"" << json_escape(device.id)
+               << "\", \"label\": \"" << json_escape(device.display.label)
+               << "\", \"category\": \"" << json_escape(std::string(pi_fartbox::engine::to_string(device.category)))
+               << "\", \"description\": \"" << json_escape(device.description) << "\"}";
+    if (index + 1 != device_types.size()) {
+      state_file << ",";
+    }
+    state_file << "\n";
+  }
+  state_file << "  ]\n";
+  state_file << "}\n";
+}
+
 auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
                   const pi_fartbox::session::SessionManager& sessions,
                   const pi_fartbox::platform::LinuxHost& host,
@@ -132,6 +253,16 @@ auto main(int argc, char** argv) -> int {
 
   const auto state_dir = std::filesystem::path(sessions.paths().session_root).parent_path();
   write_runtime_state(state_dir, summary);
+  const auto controller_context = controller.controller_core().make_context(
+      engine,
+      pi_fartbox::controller::PortRoleStatus{
+          .midi_input_name = "auto",
+          .midi_output_name = "auto",
+          .input_connected = false,
+          .output_connected = false,
+          .sysex_enabled = controller.config().enable_sysex_feedback,
+      });
+  write_runtime_state_json(state_dir, engine, sessions, host, control, controller_context);
 
   if (one_shot) {
     return 0;

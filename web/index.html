@@ -3,61 +3,508 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>piFartBox</title>
+    <title>piFartBox Workbench</title>
     <style>
       :root {
+        --bg-0: #07111b;
+        --bg-1: #0d1c2d;
+        --panel: rgba(14, 31, 47, 0.9);
+        --panel-strong: rgba(20, 41, 61, 0.96);
+        --line: rgba(108, 153, 197, 0.3);
+        --line-strong: rgba(130, 180, 229, 0.5);
+        --text: #edf5ff;
+        --muted: #96adc5;
+        --accent: #ffbd4b;
+        --accent-soft: rgba(255, 189, 75, 0.18);
+        --blue: #49b4ff;
+        --blue-soft: rgba(73, 180, 255, 0.16);
+        --green: #65d78d;
+        --green-soft: rgba(101, 215, 141, 0.16);
+        --red: #ff7963;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
         color-scheme: dark;
-        --bg: #08111f;
-        --panel: #11243b;
-        --line: #33536e;
-        --text: #e7f0ff;
-        --muted: #95abc5;
-        --accent: #f8b94b;
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
         background:
-          radial-gradient(circle at top, rgba(78, 124, 176, 0.28), transparent 42%),
-          linear-gradient(180deg, #0d1b2d 0%, var(--bg) 100%);
+          radial-gradient(circle at top left, rgba(73, 180, 255, 0.14), transparent 30%),
+          radial-gradient(circle at top right, rgba(255, 189, 75, 0.16), transparent 28%),
+          linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 70%);
         color: var(--text);
-        font-family: "Segoe UI", sans-serif;
+        font-family: "Trebuchet MS", "Gill Sans", sans-serif;
       }
 
-      main {
-        width: min(720px, calc(100vw - 32px));
-        padding: 28px;
+      .shell {
+        width: min(1360px, calc(100vw - 28px));
+        margin: 16px auto 24px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero,
+      .panel {
         border: 1px solid var(--line);
-        border-radius: 18px;
-        background: rgba(17, 36, 59, 0.92);
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        padding: 22px 24px 18px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -10% -55% auto;
+        width: 340px;
+        height: 340px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 189, 75, 0.18) 0%, transparent 62%);
+      }
+
+      .hero-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        background: rgba(7, 17, 27, 0.42);
+        font-size: 0.86rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
 
       h1 {
-        margin: 0 0 10px;
-        font-size: clamp(2rem, 4vw, 3rem);
+        margin: 14px 0 10px;
+        font-size: clamp(2.2rem, 4.5vw, 4rem);
+        letter-spacing: 0.04em;
       }
 
-      p {
-        margin: 0 0 14px;
+      .hero-copy {
+        max-width: 720px;
+        color: var(--muted);
+        line-height: 1.65;
+        margin: 0;
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.4fr 0.9fr;
+        gap: 16px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 16px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 1.05rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid var(--line-strong);
+        background: linear-gradient(135deg, rgba(73, 180, 255, 0.12), rgba(255, 189, 75, 0.12));
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(7, 17, 27, 0.46);
+        border: 1px solid var(--line);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(101, 215, 141, 0.12);
+      }
+
+      .workbench {
+        display: grid;
+        gap: 14px;
+      }
+
+      .signal-path {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+      }
+
+      .node {
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: var(--panel-strong);
+        min-height: 106px;
+        padding: 14px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .node::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 5px;
+        background: linear-gradient(180deg, var(--accent), transparent);
+      }
+
+      .node small {
+        display: block;
+        color: var(--muted);
+        margin-bottom: 8px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .node strong {
+        display: block;
+        font-size: 1.1rem;
+      }
+
+      .node span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .slot-grid,
+      .module-grid,
+      .audio-grid,
+      .page-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .slot-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .module-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .audio-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .page-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .card {
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 14px;
+      }
+
+      .card.focused {
+        border-color: rgba(255, 189, 75, 0.5);
+        box-shadow: inset 0 0 0 1px rgba(255, 189, 75, 0.18);
+      }
+
+      .card .label {
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .card .value {
+        margin-top: 8px;
+        font-size: 1.2rem;
+      }
+
+      .card .meta {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.45;
+        font-size: 0.95rem;
+      }
+
+      .category-source { border-color: rgba(73, 180, 255, 0.42); }
+      .category-tone { border-color: rgba(255, 121, 99, 0.42); }
+      .category-mod { border-color: rgba(101, 215, 141, 0.42); }
+      .category-event { border-color: rgba(255, 189, 75, 0.42); }
+      .category-mix { border-color: rgba(155, 145, 255, 0.42); }
+      .category-fx { border-color: rgba(255, 116, 192, 0.42); }
+      .category-composite { border-color: rgba(255, 255, 255, 0.32); }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 18px;
         color: var(--muted);
         line-height: 1.6;
       }
 
-      code {
-        color: var(--accent);
+      .footer-note {
+        font-size: 0.95rem;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>piFartBox</h1>
-      <p>The local platform provisioning baseline is installed.</p>
-      <p>Static web assets are being served from <code>/opt/piFartBox/web</code>.</p>
-      <p>The runtime service will activate once <code>/opt/piFartBox/runtime-current/bin/pi_fartbox_runtime</code> exists.</p>
-    </main>
+    <div class="shell">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">Pi-Hosted Modular Workbench</div>
+            <h1>piFartBox</h1>
+            <p class="hero-copy">
+              The Pi now owns the runtime, slots, and controller context. This workbench is the first browser-side view into that state:
+              modules, pages, slots, and audio probing, all read directly from the device.
+            </p>
+          </div>
+          <div class="hero-meta">
+            <div class="chip" id="generated-at">Waiting for runtime...</div>
+            <div class="chip" id="backend-chip">Backend: --</div>
+            <div class="chip" id="controller-chip">Controller: --</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="layout">
+        <div class="stack">
+          <section class="panel">
+            <h2>Runtime Status</h2>
+            <div class="status-bar">
+              <div class="status-pill"><span class="dot"></span><span id="status-line">Awaiting runtime JSON</span></div>
+              <div class="status-pill" id="sample-rate-pill">Sample Rate: --</div>
+              <div class="status-pill" id="slot-count-pill">Slots: --</div>
+            </div>
+          </section>
+
+          <section class="panel workbench">
+            <h2>Signal Path</h2>
+            <div class="signal-path" id="signal-path"></div>
+            <div class="footer-note">
+              This is a curated voice-strip view for now, not a free patch-cable editor. The next step is turning these tiles into editable module instances and connections.
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Live Slots</h2>
+            <div class="slot-grid" id="slot-grid"></div>
+          </section>
+
+          <section class="panel">
+            <h2>Starter Module Palette</h2>
+            <div class="module-grid" id="module-grid"></div>
+          </section>
+        </div>
+
+        <div class="stack">
+          <section class="panel">
+            <h2>Controller Pages</h2>
+            <div class="page-grid" id="page-grid"></div>
+          </section>
+
+          <section class="panel">
+            <h2>Audio Probe</h2>
+            <div class="audio-grid">
+              <div class="card">
+                <div class="label">Backend</div>
+                <div class="value" id="audio-backend">--</div>
+                <div class="meta" id="audio-backend-meta">Waiting for host probe.</div>
+              </div>
+              <div class="card">
+                <div class="label">Cards</div>
+                <div class="value" id="audio-cards-count">0</div>
+                <div class="meta" id="audio-cards-list">No ALSA cards reported yet.</div>
+              </div>
+              <div class="card">
+                <div class="label">PCM Endpoints</div>
+                <div class="value" id="audio-pcm-count">0</div>
+                <div class="meta" id="audio-pcm-list">No PCM endpoints reported yet.</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Workbench Notes</h2>
+            <ul class="list">
+              <li>Preferred pipeline remains host cross-build plus deploy.</li>
+              <li>Native on-device build is now our reliable ARMv6 fallback.</li>
+              <li>The next browser milestone is editable module placement and slot assignment.</li>
+              <li>The next runtime milestone is actual ALSA render and control API state endpoints.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const runtimeUrl = "/api/runtime-status.json";
+
+      function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value;
+        }
+      }
+
+      function renderSignalPath(data) {
+        const container = document.getElementById("signal-path");
+        const modules = data.module_palette || [];
+        const preferred = ["source", "tone", "mod", "mix", "fx", "event", "composite"];
+        const picked = preferred
+          .map((category) => modules.find((module) => module.category === category))
+          .filter(Boolean);
+        container.innerHTML = picked.map((module) => `
+          <article class="node category-${module.category}">
+            <small>${module.category}</small>
+            <strong>${module.label}</strong>
+            <span>${module.description}</span>
+          </article>
+        `).join("");
+      }
+
+      function renderSlots(data) {
+        const container = document.getElementById("slot-grid");
+        const slots = data.slots || [];
+        container.innerHTML = slots.map((slot) => `
+          <article class="card ${slot.focused ? "focused" : ""}">
+            <div class="label">Slot ${slot.slot_id}</div>
+            <div class="value">${slot.instrument || "Unassigned"}</div>
+            <div class="meta">
+              MIDI Channel ${slot.midi_channel}<br />
+              Voices ${slot.voice_count}<br />
+              Pages ${slot.page_count || 0}
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderModules(data) {
+        const container = document.getElementById("module-grid");
+        const modules = data.module_palette || [];
+        container.innerHTML = modules.map((module) => `
+          <article class="card category-${module.category}">
+            <div class="label">${module.category}</div>
+            <div class="value">${module.label}</div>
+            <div class="meta">${module.description}</div>
+          </article>
+        `).join("");
+      }
+
+      function renderPages(data) {
+        const container = document.getElementById("page-grid");
+        const pages = (data.controller && data.controller.pages) || [];
+        container.innerHTML = pages.map((page) => `
+          <article class="card">
+            <div class="label">${page.id}</div>
+            <div class="value">${page.title}</div>
+            <div class="meta">${page.binding_count} bindings</div>
+          </article>
+        `).join("");
+      }
+
+      function renderAudio(data) {
+        const audio = data.audio || {};
+        const cards = audio.cards || [];
+        const pcmDevices = audio.pcm_devices || [];
+        setText("audio-backend", audio.backend || "--");
+        setText("audio-backend-meta", audio.proc_asound_available ? "Detected /proc/asound on the Pi." : "No /proc/asound state detected.");
+        setText("audio-cards-count", String(cards.length));
+        setText("audio-cards-list", cards.length ? cards.join(" | ") : "No ALSA cards detected.");
+        setText("audio-pcm-count", String(pcmDevices.length));
+        setText("audio-pcm-list", pcmDevices.length ? pcmDevices.join(" | ") : "No PCM endpoints detected.");
+      }
+
+      async function loadRuntime() {
+        try {
+          const response = await fetch(runtimeUrl, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const data = await response.json();
+          setText("generated-at", `Updated ${data.generated_at || "--"}`);
+          setText("backend-chip", `Backend: ${(data.audio && data.audio.backend) || "--"}`);
+          setText("controller-chip", `Focused Slot: ${(data.controller && data.controller.focused_slot) || "--"}`);
+          setText("status-line", `${data.runtime.engine} active on ${data.runtime.install_root}`);
+          setText("sample-rate-pill", `Sample Rate: ${data.runtime.sample_rate_hz} Hz`);
+          setText("slot-count-pill", `Slots: ${data.runtime.slot_count}`);
+          renderSignalPath(data);
+          renderSlots(data);
+          renderModules(data);
+          renderPages(data);
+          renderAudio(data);
+        } catch (error) {
+          setText("status-line", `Runtime JSON unavailable: ${error.message}`);
+        }
+      }
+
+      loadRuntime();
+      setInterval(loadRuntime, 5000);
+    </script>
   </body>
 </html>
