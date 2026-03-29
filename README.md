@@ -52,6 +52,7 @@
 ## Build Baseline
 - The first live Pi target is treated as a legacy ARMv6 runtime appliance.
 - The preferred build model is modern-host cross-compile plus deploy.
+- A native on-device full-copy build pipeline now exists as a fallback when ARMv6 compatibility needs to be validated directly on the Pi.
 - The first supported Windows-host baseline is `Ubuntu 22.04` under WSL.
 - Native compilation on the Pi is not the primary supported path.
 - The first target OS baseline is fresh `Raspberry Pi OS Lite 32-bit`.
