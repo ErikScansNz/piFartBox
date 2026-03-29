@@ -30,9 +30,11 @@
 
 ## Repository Layout
 - `engine/`
+- `session-manager/`
 - `platform/linux/`
 - `integrations/zynthian/`
 - `control-api/`
+- `controller-mapper/`
 - `web/`
 - `content/`
 - `docs/`
@@ -50,4 +52,5 @@
 
 ## Current Status
 Repository bootstrap and governance scaffolding are complete.
+Runtime foundation scaffolding is in progress.
 See `docs/todo.md` for the next active tasks.

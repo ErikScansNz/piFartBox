@@ -19,9 +19,11 @@ This repository builds the new production synth workstation `piFartBox` for Rasp
 
 ## Repository Layout
 - `engine/`: native DSP engine and core model contracts
+- `session-manager/`: session persistence, slot assignment state, and controller mapping ownership
 - `platform/linux/`: Linux audio, threading, filesystem, and host glue
 - `integrations/zynthian/`: Zynthian-native adapter/integration code
 - `control-api/`: Pi-hosted local API for browser/control surfaces
+- `controller-mapper/`: dedicated hardware-controller adapters and page/mapping logic
 - `web/`: Pi-hosted browser editor and performance UI
 - `content/`: factory instruments, controller profiles, default sessions
 - `docs/`: plans, task indexes, architecture notes, and operating rules
