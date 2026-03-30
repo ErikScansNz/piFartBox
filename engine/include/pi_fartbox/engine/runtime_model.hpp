@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace pi_fartbox::engine {
@@ -52,13 +53,25 @@ enum class VoiceState {
   released
 };
 
+enum class EnvelopeStage {
+  idle,
+  attack,
+  decay,
+  sustain,
+  release
+};
+
 struct VoiceInstance {
   std::uint32_t voice_id = 0;
   VoiceState state = VoiceState::idle;
+  EnvelopeStage envelope_stage = EnvelopeStage::idle;
   std::optional<std::uint8_t> midi_note;
   std::optional<std::uint8_t> midi_channel;
   double velocity = 0.0;
   std::uint64_t generation = 0;
+  double phase = 0.0;
+  double envelope_level = 0.0;
+  double filter_state = 0.0;
 };
 
 struct CompiledInstrumentPage {
@@ -97,6 +110,7 @@ struct SlotRuntime {
   double pan = 0.0;
   double send_level = 0.0;
   std::optional<CompiledInstrument> compiled_instrument;
+  std::unordered_map<std::string, double> parameter_values;
   std::vector<VoiceInstance> voices;
 };
 

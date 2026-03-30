@@ -129,6 +129,18 @@ auto json_escape(std::string_view input) -> std::string {
   return escaped;
 }
 
+auto bytes_to_hex(const std::vector<std::uint8_t>& bytes) -> std::string {
+  std::ostringstream out;
+  out << std::hex << std::uppercase << std::setfill('0');
+  for (std::size_t index = 0; index < bytes.size(); ++index) {
+    if (index > 0) {
+      out << ' ';
+    }
+    out << std::setw(2) << static_cast<int>(bytes[index]);
+  }
+  return out.str();
+}
+
 void write_runtime_state_json(const std::filesystem::path& state_dir,
                               const pi_fartbox::engine::EngineRuntime& engine,
                               const pi_fartbox::session::SessionManager& sessions,
@@ -190,6 +202,7 @@ void write_runtime_state_json(const std::filesystem::path& state_dir,
   state_file << "  },\n";
   state_file << "  \"controller\": {\n";
   state_file << "    \"focused_slot\": " << controller_context.focused_slot_id << ",\n";
+  state_file << "    \"active_page_index\": " << controller_context.active_page_index << ",\n";
   state_file << "    \"device_input\": \"" << json_escape(controller_context.port_status.midi_input_name) << "\",\n";
   state_file << "    \"device_output\": \"" << json_escape(controller_context.port_status.midi_output_name) << "\",\n";
   state_file << "    \"sysex_enabled\": " << (controller_context.port_status.sysex_enabled ? "true" : "false") << ",\n";
@@ -203,11 +216,43 @@ void write_runtime_state_json(const std::filesystem::path& state_dir,
     }
     state_file << "\n";
   }
-  state_file << "    ]\n";
+  state_file << "    ],\n";
+  if (controller_context.active_display_page.has_value()) {
+    const auto& display_page = *controller_context.active_display_page;
+    state_file << "    \"active_display_page\": {\n";
+    state_file << "      \"id\": \"" << json_escape(display_page.id) << "\",\n";
+    state_file << "      \"title\": \"" << json_escape(display_page.title) << "\",\n";
+    state_file << "      \"columns\": [\n";
+    for (std::size_t index = 0; index < display_page.columns.size(); ++index) {
+      const auto& column = display_page.columns[index];
+      state_file << "        {\"column\": " << static_cast<int>(column.column)
+                 << ", \"row1\": \"" << json_escape(column.row1)
+                 << "\", \"row3\": \"" << json_escape(column.row3)
+                 << "\", \"value\": " << static_cast<int>(column.value) << "}";
+      if (index + 1 != display_page.columns.size()) {
+        state_file << ",";
+      }
+      state_file << "\n";
+    }
+    state_file << "      ],\n";
+    state_file << "      \"sysex_messages\": [\n";
+    for (std::size_t index = 0; index < display_page.sysex_messages.size(); ++index) {
+      state_file << "        \"" << json_escape(bytes_to_hex(display_page.sysex_messages[index])) << "\"";
+      if (index + 1 != display_page.sysex_messages.size()) {
+        state_file << ",";
+      }
+      state_file << "\n";
+    }
+    state_file << "      ]\n";
+    state_file << "    }\n";
+  } else {
+    state_file << "    \"active_display_page\": null\n";
+  }
   state_file << "  },\n";
+  const auto slots = engine.slot_runtimes_snapshot();
   state_file << "  \"slots\": [\n";
-  for (std::size_t index = 0; index < engine.slot_runtimes().size(); ++index) {
-    const auto& slot = engine.slot_runtimes()[index];
+  for (std::size_t index = 0; index < slots.size(); ++index) {
+    const auto& slot = slots[index];
     state_file << "    {\"slot_id\": " << slot.slot_id
                << ", \"midi_channel\": " << static_cast<int>(slot.midi_channel)
                << ", \"focused\": " << (slot.focused ? "true" : "false")
@@ -217,7 +262,7 @@ void write_runtime_state_json(const std::filesystem::path& state_dir,
       state_file << ", \"page_count\": " << slot.compiled_instrument->generated_pages.size();
     }
     state_file << "}";
-    if (index + 1 != engine.slot_runtimes().size()) {
+    if (index + 1 != slots.size()) {
       state_file << ",";
     }
     state_file << "\n";
@@ -285,7 +330,10 @@ auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
   out << "controller_device: " << controller.config().device_name << "\n";
   out << "focused_slot: " << controller_context.focused_slot_id << "\n";
   out << "controller_pages: " << controller_context.pages.size() << "\n";
-  for (const auto& slot : engine.slot_runtimes()) {
+  if (controller_context.active_display_page.has_value()) {
+    out << "incontrol_page: " << controller_context.active_display_page->title << "\n";
+  }
+  for (const auto& slot : engine.slot_runtimes_snapshot()) {
     out << "slot[" << slot.slot_id << "]: channel=" << static_cast<int>(slot.midi_channel)
         << " focused=" << (slot.focused ? "yes" : "no")
         << " voices=" << slot.voices.size();
@@ -304,6 +352,7 @@ auto make_summary(const pi_fartbox::engine::EngineRuntime& engine,
 auto main(int argc, char** argv) -> int {
   bool one_shot = false;
   std::optional<std::uint32_t> tone_test_seconds;
+  std::optional<std::uint32_t> synth_demo_seconds;
   for (int index = 1; index < argc; ++index) {
     const std::string argument = argv[index];
     if (argument == "--oneshot") {
@@ -314,8 +363,14 @@ auto main(int argc, char** argv) -> int {
         return 1;
       }
       tone_test_seconds = static_cast<std::uint32_t>(std::stoul(argv[++index]));
+    } else if (argument == "--synth-demo") {
+      if (index + 1 >= argc) {
+        std::cerr << "--synth-demo requires a duration in seconds\n";
+        return 1;
+      }
+      synth_demo_seconds = static_cast<std::uint32_t>(std::stoul(argv[++index]));
     } else if (argument == "--help") {
-      std::cout << "Usage: pi_fartbox_runtime [--oneshot] [--tone-test <seconds>]\n";
+      std::cout << "Usage: pi_fartbox_runtime [--oneshot] [--tone-test <seconds>] [--synth-demo <seconds>]\n";
       return 0;
     } else {
       std::cerr << "Unknown argument: " << argument << "\n";
@@ -324,6 +379,7 @@ auto main(int argc, char** argv) -> int {
   }
 
   pi_fartbox::engine::EngineRuntime engine;
+  engine.set_demo_mode(synth_demo_seconds.has_value() || env_bool("PI_FARTBOX_SYNTH_DEMO", false));
   pi_fartbox::session::SessionManager sessions;
   pi_fartbox::platform::LinuxHostConfig host_config;
   host_config.install_root = env_string("PI_FARTBOX_INSTALL_ROOT", host_config.install_root);
@@ -339,7 +395,13 @@ auto main(int argc, char** argv) -> int {
   host_config.audio_test_tone_level = env_double("PI_FARTBOX_AUDIO_TEST_TONE_LEVEL", host_config.audio_test_tone_level);
 
   pi_fartbox::platform::LinuxHost host(host_config);
-  pi_fartbox::platform::AlsaPlaybackEngine audio_engine(host_config);
+  pi_fartbox::platform::AlsaPlaybackEngine audio_engine(
+      host_config,
+      tone_test_seconds.has_value()
+          ? pi_fartbox::platform::AlsaPlaybackEngine::AudioRenderCallback{}
+          : [&engine](float* interleaved_output, std::size_t frame_count, std::uint32_t channel_count, std::uint32_t sample_rate_hz) {
+              engine.render_audio(interleaved_output, frame_count, channel_count, sample_rate_hz);
+            });
   pi_fartbox::control::ControlServer control;
   pi_fartbox::controller::SlmkiiiMapper controller;
   pi_fartbox::zynthian::ZynthianAdapter zynthian;
@@ -347,6 +409,8 @@ auto main(int argc, char** argv) -> int {
   const auto audio_started = audio_engine.start();
   if (tone_test_seconds.has_value()) {
     std::this_thread::sleep_for(std::chrono::seconds(*tone_test_seconds));
+  } else if (synth_demo_seconds.has_value()) {
+    std::this_thread::sleep_for(std::chrono::seconds(*synth_demo_seconds));
   }
   const auto audio_status = audio_engine.status();
 
@@ -376,9 +440,23 @@ auto main(int argc, char** argv) -> int {
     return 0;
   }
 
+  if (synth_demo_seconds.has_value()) {
+    audio_engine.stop();
+    return audio_started ? 0 : 2;
+  }
+
   install_signal_handlers();
   while (g_should_run.load()) {
-    write_runtime_state_json(state_dir, engine, sessions, host, audio_engine.status(), control, controller_context);
+    const auto live_context = controller.controller_core().make_context(
+        engine,
+        pi_fartbox::controller::PortRoleStatus{
+            .midi_input_name = "auto",
+            .midi_output_name = "auto",
+            .input_connected = false,
+            .output_connected = false,
+            .sysex_enabled = controller.config().enable_sysex_feedback,
+        });
+    write_runtime_state_json(state_dir, engine, sessions, host, audio_engine.status(), control, live_context);
     std::this_thread::sleep_for(1s);
   }
 

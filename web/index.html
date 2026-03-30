@@ -248,6 +248,12 @@
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       }
 
+      .display-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+      }
+
       .card {
         border-radius: 18px;
         border: 1px solid var(--line);
@@ -369,6 +375,15 @@
           </section>
 
           <section class="panel">
+            <h2>InControl Preview</h2>
+            <div class="status-bar" style="margin-bottom: 12px;">
+              <div class="status-pill" id="incontrol-title">No active InControl page</div>
+              <div class="status-pill" id="incontrol-sysex-count">SysEx: 0</div>
+            </div>
+            <div class="display-grid" id="incontrol-grid"></div>
+          </section>
+
+          <section class="panel">
             <h2>Audio Probe</h2>
             <div class="audio-grid">
               <div class="card">
@@ -484,6 +499,30 @@
         `).join("");
       }
 
+      function renderInControl(data) {
+        const controller = data.controller || {};
+        const page = controller.active_display_page;
+        const container = document.getElementById("incontrol-grid");
+        if (!page) {
+          setText("incontrol-title", "No active InControl page");
+          setText("incontrol-sysex-count", "SysEx: 0");
+          container.innerHTML = "";
+          return;
+        }
+        setText("incontrol-title", `Page: ${page.title}`);
+        setText("incontrol-sysex-count", `SysEx: ${(page.sysex_messages || []).length}`);
+        container.innerHTML = (page.columns || []).map((column) => `
+          <article class="card">
+            <div class="label">Column ${column.column + 1}</div>
+            <div class="value">${column.row1 || "--"}</div>
+            <div class="meta">
+              ${column.row3 || "--"}<br />
+              Value ${column.value}
+            </div>
+          </article>
+        `).join("");
+      }
+
       function renderAudio(data) {
         const audio = data.audio || {};
         const cards = audio.cards || [];
@@ -538,6 +577,7 @@
           renderSlots(data);
           renderModules(data);
           renderPages(data);
+          renderInControl(data);
           renderAudio(data);
         } catch (error) {
           setText("status-line", `Runtime JSON unavailable: ${error.message}`);

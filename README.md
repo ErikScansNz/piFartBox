@@ -64,4 +64,5 @@ Repository bootstrap and governance scaffolding are complete.
 Runtime foundation, schema, and the first ARMv6 cross-build baseline are in place.
 Provisioning for fresh Raspberry Pi OS targets supports streamed output and selectable apt modes.
 The first ALSA runtime foundation is now live on the Pi, including runtime JSON telemetry and a Pi-hosted workbench view of accepted audio settings.
+The starter subtractive instrument now renders through the ALSA callback path, and the runtime exports an active SL MkIII InControl page preview derived from focused instrument controls.
 See `docs/todo.md` for the next active tasks.

@@ -16,10 +16,15 @@
   - start the ALSA playback thread with the test-tone path enabled
   - hold it open for the requested duration
   - write runtime JSON and exit
+- `--synth-demo <seconds>`:
+  - start the ALSA playback thread with the starter subtractive instrument render path
+  - enable the internal demo note pattern
+  - write runtime JSON and exit after the requested duration
 
 ## Current Responsibilities
 - instantiate the current subsystem scaffolding
 - start the first ALSA playback engine using direct `alsa-lib`
+- render the starter subtractive instrument through the ALSA callback path
 - attempt `SCHED_FIFO` and `mlockall()` for the audio thread
 - print a startup summary
 - write runtime status files under `/var/lib/piFartBox`
@@ -47,9 +52,11 @@
 - `PI_FARTBOX_AUDIO_TEST_TONE`
 - `PI_FARTBOX_AUDIO_TEST_TONE_HZ`
 - `PI_FARTBOX_AUDIO_TEST_TONE_LEVEL`
+- `PI_FARTBOX_SYNTH_DEMO`
 
 ## Notes
 - This is still a foundation milestone, not the final synth voice engine.
 - ALSA is now the active first audio backend baseline.
+- The runtime JSON now includes an active InControl page preview derived from the focused instrument exports.
 - The control endpoint default is `127.0.0.1:17890` to match the nginx proxy config.
 - The Pi-hosted workbench can consume the JSON status export directly through nginx before the full control API is implemented.

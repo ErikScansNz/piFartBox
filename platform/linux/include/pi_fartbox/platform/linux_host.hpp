@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -66,7 +67,9 @@ class LinuxHost {
 
 class AlsaPlaybackEngine {
  public:
-  explicit AlsaPlaybackEngine(LinuxHostConfig config = {});
+  using AudioRenderCallback = std::function<void(float*, std::size_t, std::uint32_t, std::uint32_t)>;
+
+  explicit AlsaPlaybackEngine(LinuxHostConfig config = {}, AudioRenderCallback render_callback = {});
   ~AlsaPlaybackEngine();
 
   auto start() -> bool;

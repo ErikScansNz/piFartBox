@@ -88,6 +88,14 @@ auto InstrumentCompiler::compile(const InstrumentDefinition& instrument) const -
 
   std::vector<CompiledInstrumentPage> generated_pages;
   generated_pages.reserve(pages_by_id.size());
+  for (const auto& page_id : instrument.default_pages) {
+    const auto page_it = pages_by_id.find(page_id);
+    if (page_it == pages_by_id.end()) {
+      continue;
+    }
+    generated_pages.push_back(std::move(page_it->second));
+    pages_by_id.erase(page_it);
+  }
   for (auto& [page_id, page] : pages_by_id) {
     generated_pages.push_back(std::move(page));
   }

@@ -87,7 +87,8 @@ auto LinuxHost::probe_audio_state() -> AudioProbeInfo {
 
 class AlsaPlaybackEngine::Impl {
  public:
-  explicit Impl(LinuxHostConfig config) : config_(std::move(config)) {
+  explicit Impl(LinuxHostConfig config, AudioRenderCallback render_callback)
+      : config_(std::move(config)), render_callback_(std::move(render_callback)) {
     status_.compiled_with_alsa = PI_FARTBOX_HAVE_ALSA != 0;
     status_.requested_device = config_.alsa_device;
     status_.tone_enabled = config_.audio_test_tone_enabled;
@@ -244,6 +245,7 @@ class AlsaPlaybackEngine::Impl {
     }
     notify_startup();
 
+    std::vector<float> float_buffer(static_cast<std::size_t>(period_frames) * channels, 0.0f);
     std::vector<std::int16_t> buffer(static_cast<std::size_t>(period_frames) * channels, 0);
     double phase = 0.0;
     const auto phase_increment =
@@ -257,7 +259,14 @@ class AlsaPlaybackEngine::Impl {
         }
       }
 
-      if (config_.audio_test_tone_enabled) {
+      if (render_callback_) {
+        std::fill(float_buffer.begin(), float_buffer.end(), 0.0f);
+        render_callback_(float_buffer.data(), static_cast<std::size_t>(period_frames), channels, sample_rate);
+        for (std::size_t index = 0; index < float_buffer.size(); ++index) {
+          const auto sample = std::clamp(float_buffer[index], -1.0f, 1.0f);
+          buffer[index] = static_cast<std::int16_t>(sample * static_cast<float>(std::numeric_limits<std::int16_t>::max()));
+        }
+      } else if (config_.audio_test_tone_enabled) {
         for (std::size_t frame = 0; frame < static_cast<std::size_t>(period_frames); ++frame) {
           const auto sample = static_cast<std::int16_t>(
               std::sin(phase) * config_.audio_test_tone_level * static_cast<double>(std::numeric_limits<std::int16_t>::max()));
@@ -314,6 +323,7 @@ class AlsaPlaybackEngine::Impl {
   }
 
   LinuxHostConfig config_;
+  AudioRenderCallback render_callback_;
   mutable std::mutex mutex_;
   mutable std::mutex startup_mutex_;
   std::condition_variable startup_cv_;
@@ -323,7 +333,8 @@ class AlsaPlaybackEngine::Impl {
   bool startup_complete_ = false;
 };
 
-AlsaPlaybackEngine::AlsaPlaybackEngine(LinuxHostConfig config) : impl_(std::make_unique<Impl>(std::move(config))) {}
+AlsaPlaybackEngine::AlsaPlaybackEngine(LinuxHostConfig config, AudioRenderCallback render_callback)
+    : impl_(std::make_unique<Impl>(std::move(config), std::move(render_callback))) {}
 
 AlsaPlaybackEngine::~AlsaPlaybackEngine() = default;
 
