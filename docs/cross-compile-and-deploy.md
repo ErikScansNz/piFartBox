@@ -13,6 +13,15 @@ The supported baseline is:
 
 The live Pi is treated as a runtime appliance target, not the primary build machine.
 
+## Sysroot Requirement
+For Raspberry Pi 1 B+ deployments, the cross-build should use a target-captured sysroot so the final linked ELF inherits the Pi's actual ARMv6 runtime baseline rather than the host distro's newer ARMhf defaults.
+
+Capture helper:
+- `scripts/deploy/capture_target_sysroot.py`
+
+Recommended local location:
+- `sysroots/rpi1-trixie/`
+
 ## Target ABI / CPU Assumptions
 - GNU triplet: `arm-linux-gnueabihf`
 - CPU family: ARMv6
@@ -48,6 +57,7 @@ Current local validation:
 - `Ubuntu 22.04` is installed under WSL2 on the primary Windows workstation
 - the ARMv6 cross toolchain is installed and on PATH inside WSL
 - `./scripts/build/cross_build_armv6.sh` successfully configures and builds the runtime probe from `/mnt/c/piFartBox`
+- the build wrappers now force a fresh configure and fail if the final runtime ELF is not tagged `Tag_CPU_arch: v6`
 
 ## Build Target
 The first deployable artifact target is:
@@ -64,14 +74,14 @@ This is a bring-up target, not the final synth runtime.
 On a Linux/WSL host:
 
 ```bash
-cmake -S . -B build-armv6 -G Ninja \
-  -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/armv6-rpi1-linux-gnueabihf.cmake
-
-cmake --build build-armv6
+python3 scripts/deploy/capture_target_sysroot.py --host 192.168.1.26 --user erik --password <password> --name rpi1-trixie
+TARGET_SYSROOT=sysroots/rpi1-trixie ./scripts/build/cross_build_armv6.sh
 ```
 
 Expected output:
 - `build-armv6/apps/runtime-probe/pi_fartbox_runtime_probe`
+- `build-armv6/apps/runtime/pi_fartbox_runtime`
+- a build-time failure if the resulting runtime binary is not tagged for `ARMv6`
 
 ## Artifact Packaging
 The first artifact package should contain:
@@ -119,6 +129,7 @@ Do not begin with a blind full system update.
 
 Instead:
 - use the documented Linux/WSL cross-build host baseline
-- validate the ARMv6 toolchain file
-- build the runtime probe
+- capture a target sysroot from the live Pi
+- validate the ARMv6 toolchain file and final ELF attributes
+- build the runtime
 - deploy and run it on the Pi

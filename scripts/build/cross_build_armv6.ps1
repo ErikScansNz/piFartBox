@@ -29,9 +29,21 @@ if ! command -v arm-linux-gnueabihf-g++ >/dev/null 2>&1; then
   echo 'error: arm-linux-gnueabihf-g++ not found in WSL' >&2
   exit 1
 fi
+READELF=readelf
+if command -v arm-linux-gnueabihf-readelf >/dev/null 2>&1; then
+  READELF=arm-linux-gnueabihf-readelf
+fi
 cd '$linuxRepoPath'
+cmake -E rm -rf '$linuxBuildDir'
 cmake -S . -B '$linuxBuildDir' -G Ninja -DCMAKE_TOOLCHAIN_FILE='$linuxToolchain'$(if ($linuxTargetSysroot) { " -DPI_FARTBOX_TARGET_SYSROOT='$linuxTargetSysroot'" })
 cmake --build '$linuxBuildDir'
+if [ -f '$linuxBuildDir/apps/runtime/pi_fartbox_runtime' ]; then
+  if ! "$READELF" -A '$linuxBuildDir/apps/runtime/pi_fartbox_runtime' | grep -q 'Tag_CPU_arch: v6'; then
+    echo 'error: built runtime is not tagged for ARMv6' >&2
+    "$READELF" -A '$linuxBuildDir/apps/runtime/pi_fartbox_runtime' >&2 || true
+    exit 2
+  fi
+fi
 "@
 
 wsl -d $Distro -- bash -lc $bashCommand

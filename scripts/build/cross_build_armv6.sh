@@ -16,6 +16,17 @@ if ! command -v arm-linux-gnueabihf-g++ >/dev/null 2>&1; then
   exit 1
 fi
 
+READELF="${READELF:-}"
+if [[ -z "$READELF" ]]; then
+  if command -v arm-linux-gnueabihf-readelf >/dev/null 2>&1; then
+    READELF="arm-linux-gnueabihf-readelf"
+  else
+    READELF="readelf"
+  fi
+fi
+
+cmake -E rm -rf "$BUILD_DIR"
+
 cmake_args=(
   -S .
   -B "$BUILD_DIR"
@@ -29,3 +40,12 @@ fi
 
 cmake "${cmake_args[@]}"
 cmake --build "$BUILD_DIR"
+
+RUNTIME_BIN="$BUILD_DIR/apps/runtime/pi_fartbox_runtime"
+if [[ -f "$RUNTIME_BIN" ]]; then
+  if ! "$READELF" -A "$RUNTIME_BIN" | grep -q "Tag_CPU_arch: v6"; then
+    echo "error: built runtime is not tagged for ARMv6" >&2
+    "$READELF" -A "$RUNTIME_BIN" >&2 || true
+    exit 2
+  fi
+fi
